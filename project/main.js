@@ -1,10 +1,10 @@
 const axios = require("axios");
 const http = require("http");
 const fs = require("fs");
-const fsp = require("fs").promises
+const fsp = require("fs").promises;
 
 const servidor = http
-  .createServer(async function (req, res) {
+  .createServer(function (req, res) {
     switch (req.url) {
       case "/api/proveedores":
         llenarTablaProveedor().then((_) =>
@@ -16,8 +16,7 @@ const servidor = http
                 res.end("Error");
               } else {
                 res.writeHead(200, { "Content-Type": "text/html" });
-                res.write(content, "utf-8");
-                res.end();
+                res.end(content, "utf-8");
               }
             }
           )
@@ -94,23 +93,31 @@ async function llenarTablaCliente() {
       return tabla;
     };
     tablaModificada().then((tabla) => {
-      fs.readFile("./project/index.html", "utf-8", function (err, data) {
-        if (err) {
-          return console.log(err);
-        }
-        var modificado = data.replace(/auxiliarFSNOD/g, tabla);
-        var modificado2 = modificado.replace(/identificador/g, "Id de cliente");
-        var modificado3 = modificado2.replace(/titulo/, "Clientes");
-
-        fs.writeFile(
-          "./project/indexModificado.html",
-          modificado3,
-          "utf8",
-          function (err) {
-            if (err) console.log(err);
+      const aux = async () => {
+        fs.readFile("./project/index.html", "utf-8", function (err, data) {
+          if (err) {
+            return console.log(err);
+          } else {
+            var modificado = data.replace(/auxiliarFSNOD/g, tabla);
+            var modificado2 = modificado.replace(
+              /identificador/g,
+              "Id del Cliente"
+            );
+            var modificado3 = modificado2.replace(/titulo/, "Clientes");
+            fs.writeFile(
+              "./project/indexModificado.html",
+              modificado3,
+              "utf8",
+              function (err) {
+                if (err) console.log(err);
+                else console.log(modificado3);
+              }
+            );
+            return modificado3;
           }
-        );
-      });
+        });
+      };
+      aux().then((resp) => console.log(resp));
     });
   });
 }
@@ -141,29 +148,31 @@ async function llenarTablaProveedor() {
       return tabla;
     };
     tablaModificada().then((tabla) => {
-      fsp.readFile("./project/index.html", "utf-8", function (err, data) {
-        if (err) {
-          return console.log(err);
-        }
-        else{}
-        var modificado = data.replace(/auxiliarFSNOD/g, tabla);
-        var modificado2 = modificado.replace(
-          /identificador/g,
-          "Id del proveedor"
-        );
-        var modificado3 = modificado2.replace(/titulo/, "Proveedores");
-        fs.writeFile(
-          "./project/indexModificado.html",
-          modificado3,
-          "utf8",
-          function (err) {
-            if (err) console.log(err);
-            else console.log(modificado3)
+      const aux = async () => {
+        fs.readFile("./project/index.html", "utf-8", function (err, data) {
+          if (err) {
+            return console.log(err);
+          } else {
+            var modificado = data.replace(/auxiliarFSNOD/g, tabla);
+            var modificado2 = modificado.replace(
+              /identificador/g,
+              "Id del proveedor"
+            );
+            var modificado3 = modificado2.replace(/titulo/, "Proveedores");
+            fs.writeFile(
+              "./project/indexModificado.html",
+              modificado3,
+              "utf8",
+              function (err) {
+                if (err) console.log(err);
+                else console.log(modificado3);
+              }
+            );
+            return modificado3;
           }
-        );
-        return modificado3;
-      }).then(resp => console.log(resp));
+        });
+      };
+      aux().then((resp) => console.log(resp));
     });
   });
-;
 }
