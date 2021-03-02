@@ -1,12 +1,12 @@
 const axios = require("axios");
 const http = require("http");
 const fs = require("fs");
+const fsp = require("fs").promises
 
 const servidor = http
   .createServer(async function (req, res) {
     switch (req.url) {
       case "/api/proveedores":
-        await llenarTablaProveedor();
         llenarTablaProveedor().then((_) =>
           fs.readFile(
             "./project/indexModificado.html",
@@ -24,7 +24,6 @@ const servidor = http
         );
         break;
       case "/api/clientes":
-        await llenarTablaCliente();
         llenarTablaCliente().then((_) =>
           fs.readFile(
             "./project/indexModificado.html",
@@ -142,27 +141,29 @@ async function llenarTablaProveedor() {
       return tabla;
     };
     tablaModificada().then((tabla) => {
-      fs.readFile("./project/index.html", "utf-8", function (err, data) {
+      fsp.readFile("./project/index.html", "utf-8", function (err, data) {
         if (err) {
           return console.log(err);
         }
+        else{}
         var modificado = data.replace(/auxiliarFSNOD/g, tabla);
         var modificado2 = modificado.replace(
           /identificador/g,
           "Id del proveedor"
         );
         var modificado3 = modificado2.replace(/titulo/, "Proveedores");
-
         fs.writeFile(
           "./project/indexModificado.html",
           modificado3,
           "utf8",
           function (err) {
             if (err) console.log(err);
+            else console.log(modificado3)
           }
         );
-      });
+        return modificado3;
+      }).then(resp => console.log(resp));
     });
   });
-  return;
+;
 }
