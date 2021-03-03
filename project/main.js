@@ -7,36 +7,34 @@ const servidor = http
   .createServer(function (req, res) {
     switch (req.url) {
       case "/api/proveedores":
-        llenarTablaProveedor().then((_) =>
-          fs.readFile(
-            "./project/indexModificado.html",
-            function (error, content) {
-              if (error) {
-                res.writeHead(500);
-                res.end("Error");
-              } else {
-                res.writeHead(200, { "Content-Type": "text/html" });
-                res.end(content, "utf-8");
-              }
+        fs.readFile(
+          "./project/index.html",
+          async function (error, content) {
+            if (error) {
+              res.writeHead(500);
+              res.end("Error");
+            } else {
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.write(content, "utf-8");
+              await llenarTablaProveedor(res);
             }
-          )
-        );
+          }
+        )
         break;
       case "/api/clientes":
-        llenarTablaCliente().then((_) =>
-          fs.readFile(
-            "./project/indexModificado.html",
-            function (error, content) {
-              if (error) {
-                res.writeHead(500);
-                res.end("Error");
-              } else {
-                res.writeHead(200, { "Content-Type": "text/html" });
-                res.end(content, "utf-8");
-              }
+        fs.readFile(
+          "./project/index.html",
+          async function (error, content) {
+            if (error) {
+              res.writeHead(500);
+              res.end("Error");
+            } else {
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.write(content, "utf-8");
+              await llenarTablaCliente(res);
             }
-          )
-        );
+          }
+        )
         break;
       default:
         res.writeHead(200, { "Content-Type": "text/html" });
@@ -67,112 +65,78 @@ const promiseProveedores = async () => {
   }
 };
 
-async function llenarTablaCliente() {
-  promiseClientes().then((data) => {
-    const tablaModificada = async () => {
-      let tabla = "";
-      for (i in data) {
-        let idcliente = data[i].idCliente;
-        let nombreCompania = data[i].NombreCompania;
-        let nombreContacto = data[i].NombreContacto;
-
-        let aux =
-          "<tr> " +
-          "<td> " +
-          idcliente +
-          " </td> " +
-          "<td> " +
-          nombreCompania +
-          " </td> " +
-          "<td> " +
-          nombreContacto +
-          " </td> " +
-          " </tr>";
-        tabla += aux;
-      }
-      return tabla;
-    };
-    tablaModificada().then((tabla) => {
-      const aux = async () => {
-        fs.readFile("./project/index.html", "utf-8", function (err, data) {
-          if (err) {
-            return console.log(err);
-          } else {
-            var modificado = data.replace(/auxiliarFSNOD/g, tabla);
-            var modificado2 = modificado.replace(
-              /identificador/g,
-              "Id del Cliente"
-            );
-            var modificado3 = modificado2.replace(/titulo/, "Clientes");
-            fs.writeFile(
-              "./project/indexModificado.html",
-              modificado3,
-              "utf8",
-              function (err) {
-                if (err) console.log(err);
-                else console.log(modificado3);
-              }
-            );
-            return modificado3;
-          }
-        });
-      };
-      aux().then((resp) => console.log(resp));
-    });
-  });
+async function llenarTablaCliente(res) {
+  const clientes = await promiseClientes();
+  const tabla = tablaModificada(clientes,res,"clie");
+  return tabla;
 }
 
-async function llenarTablaProveedor() {
-  promiseProveedores().then((data) => {
-    const tablaModificada = async () => {
-      let tabla = "";
-      for (i in data) {
-        let idcliente = data[i].idproveedor;
-        let nombreCompania = data[i].nombrecompania;
-        let nombreContacto = data[i].nombrecontacto;
+async function llenarTablaProveedor(res) {
+  const proveedores = await promiseProveedores();
+  const tabla = tablaModificada(proveedores,res,"prov");
+  return tabla;
+}
 
-        let aux =
-          "<tr> " +
-          "<td> " +
-          idcliente +
-          " </td> " +
-          "<td> " +
-          nombreCompania +
-          " </td> " +
-          "<td> " +
-          nombreContacto +
-          " </td> " +
-          " </tr>";
-        tabla += aux;
-      }
-      return tabla;
-    };
-    tablaModificada().then((tabla) => {
-      const aux = async () => {
-        fs.readFile("./project/index.html", "utf-8", function (err, data) {
-          if (err) {
-            return console.log(err);
-          } else {
-            var modificado = data.replace(/auxiliarFSNOD/g, tabla);
-            var modificado2 = modificado.replace(
-              /identificador/g,
-              "Id del proveedor"
-            );
-            var modificado3 = modificado2.replace(/titulo/, "Proveedores");
-            fs.writeFile(
-              "./project/indexModificado.html",
-              modificado3,
-              "utf8",
-              function (err) {
-                if (err) console.log(err);
-                else console.log(modificado3);
-              }
-            );
-            return modificado3;
-          }
-        });
-      };
-      aux().then((resp) => console.log(resp));
-    });
-  });
+function tablaModificada(datos,res,tipo) {
+  //let tabla = "";
+  if(tipo==="prov"){
+    res.write("<h1 class='text-center'>Listado de proveedores</h1>")
+  }
+  else if(tipo==="clie"){
+    res.write("<h1 class='text-center'>Listado de clientes</h1>")
+  }
+  res.write("<table data-toggle='table' class='table table-striped'>")  
+  res.write("<thead>")
+  res.write("<tr>")
+  res.write('<th scope="col">ID</th>')
+  res.write('<th scope="col">Nombre de compañia</th>')  
+  res.write('<th scope="col">Nombre de contacto</th>')  
+  res.write("</tr>")
+  res.write("</thead>")
+  res.write("<tbody>")
+  if(tipo === "prov")
+  {
+    for (i in datos) {
+      let idcliente = datos[i].idproveedor;
+      let nombreCompania = datos[i].nombrecompania;
+      let nombreContacto = datos[i].nombrecontacto;
+      res.write("<tr>")
+      res.write("<td>")
+      res.write(idcliente)
+      res.write("</td>")
+      res.write("<td>")
+      res.write(nombreCompania)
+      res.write("</td>")
+      res.write("<td>")
+      res.write(nombreContacto)
+      res.write("</td>")
+      res.write("</tr>")
+    }
+    res.write("</tbody>")
+    res.write("</table>")
+    res.end()
+  }
+  else if(tipo === "clie")
+  {
+    for (i in datos) {
+      let idcliente = datos[i].idCliente;
+      let nombreCompania = datos[i].NombreCompania;
+      let nombreContacto = datos[i].NombreContacto;
+      res.write("<tr>")
+      res.write("<td>")
+      res.write(idcliente)
+      res.write("</td>")
+      res.write("<td>")
+      res.write(nombreCompania)
+      res.write("</td>")
+      res.write("<td>")
+      res.write(nombreContacto)
+      res.write("</td>")
+      res.write("</tr>")
+    }
+    res.write("</tbody>")
+    res.write("</table>")
+    res.end()
+  }
+  
 }
